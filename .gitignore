@@ -1,0 +1,29 @@
+# ============ CMake Build Artifacts ============
+# Ignore build directories
+/build/
+/Build/
+/build-ninja/
+/cmake-build-*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+CMakeScripts/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+
+# ============ OS Specific ============
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ============ Build/Temp Files ============
+*.log
+*.tmp
+*.swp

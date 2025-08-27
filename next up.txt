@@ -1,0 +1,36 @@
+last thing i did was:
+  implemented BetterDrawFPS() pretty sweet
+
+next up:
+  [X] make dynamic chunk loading work for more than 1 chunk
+  [X] make dynamic chunk loading work with a variable CHUNK_RENDER_DISTANCE
+  [X] fix destroy pixel function so that it uses GetActiveChunk() instead of pluging chunkID into
+    array index. (doesnt work anymore with dynamic chunk loading).
+  [X] Fix WorldDestroyPixelAt() crashing when going to the left (probably passing by chunk 0 0)
+    The whole DestroyPixel() and WorldDestroyPixel() functions need a rework after changing
+    the pipeline to use ChunkIds
+  [X] Fix weird things happening with dynamic chunk loading when on negative ChunkId values
+  [X] Add collision to unmined pixels (referencing old "kickback" project could be useful, 
+    generally figuring out where on a grid of pixels players collider lies and checking collision
+    only between those pixels will speed things up dramatically).
+  [X] Fix collision. Currently rect collision detection only detects left upper corner of the rect.
+  [X] Fix collision detextion fuckery when on negative chunk id
+  [Skip] Fix destroy pixel fuckery when on negative chunk id (visible when mineRadius = 5)
+  [] Improve collision resolution (add an actual collisionArea return value and resolve it properly)
+  [] Add resources/items/garbage to mine (each chunk could have a list of or one item in it)
+  [] Save unloaded chunks to a save file/folder as custom format/simple png files. (needs async)
+  [] Add ambient occlusion in chunk shader (shader already set up).
+  [] Fix a memory leak when traveling through chunks
+
+
+should be done (one day... not today tho):
+  [X] all chain of function regarding chunks take in chunkIDs and each function relies on
+    GetActiveChunk() function to get a reference to a chunk. It would be much better if
+    all the functions in this chain passed chunk reference (Chunk &chunk) instead. so that
+    each function in the chain does not have to call GetActiveChunk() which iterates the array
+  [X] loaded chunks could benefit from being stored in a std::unordered_map() it would eliminate
+    all the iteration needed now to find a particular chunk by using ChunkId as a key to the 
+    hashmap. it would though require creating a hashing function for chunkId struct.
+  [] Make chunk loading async (loading textures and (probably) creating images has to be done on
+  the main thread). A good moment to add this would be working on serialization as loading data
+  from a file on the main thread would be a very bad idea.
