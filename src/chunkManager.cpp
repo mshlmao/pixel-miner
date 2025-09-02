@@ -43,15 +43,15 @@ Image GenerateChunkImage(ChunkId chunkId) {  // *"World generation"
     for (int i = 0; i < CHUNK_SIZE; i++) {
       pixelColor = (unsigned char)(GetImageColor(noiseImage1, i, j).r * 0.8f +
                                    GetImageColor(noiseImage2, i, j).r * 0.2f);
-                                   
+
       if (pixelColor > 128) {
-        ImageDrawPixel(&chunkImage, i, j, (Color){74, 51, 45, 255});
+        ImageDrawPixel(&chunkImage, i, j, (Color){34, 28, 26, 255});
       } else if (pixelColor > 48) {
-        ImageDrawPixel(&chunkImage, i, j, (Color){108, 74, 63, 255});
+        ImageDrawPixel(&chunkImage, i, j, (Color){50, 43, 40, 255});
       } else if (pixelColor > 32) {
-        ImageDrawPixel(&chunkImage, i, j, (Color){208, 199, 194, 255});
+        ImageDrawPixel(&chunkImage, i, j, (Color){51, 57, 65, 255});
       } else {
-        ImageDrawPixel(&chunkImage, i, j, (Color){245, 242, 234, 255});
+        ImageDrawPixel(&chunkImage, i, j, (Color){74, 84, 98, 255});
       }
     }
   }
@@ -284,7 +284,6 @@ bool CheckCollisionRectChunk(Rectangle collider, ChunkId chunkId) {
   int startY = (int)std::floorf(startPixelCoord.y);
   int endY = (int)std::ceilf(endPixelCoord.y);
 
-  // Clamp integers for safety (in case of floating-point precision issues)
   if (startX < 0) startX = 0;
   if (startY < 0) startY = 0;
   if (endX > CHUNK_SIZE) endX = CHUNK_SIZE;

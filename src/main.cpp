@@ -29,7 +29,7 @@ int main() {
   // Initialization
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(screenWidth, screenHeight, "ooga booga minin' pixels");
-  SetWindowIcon(GenImageGradientLinear(128, 128, 230, MAGENTA, SKYBLUE));
+  SetWindowIcon(GenImageGradientLinear(128, 128, 230, MAGENTA, SKYBLUE)); 
   InitializeChunks();
 
   UpdateChunks(camera.target);  // *debug (since initialize chunks is empty)
@@ -69,6 +69,7 @@ void UpdateDrawFrame(void) {
 
   player.lastPosition = player.position;
 
+  // Input (placeholder)
   Vector2 playerMoveDir = {0.0f, 0.0f};
   if (IsKeyDown(KEY_D)) {
     playerMoveDir.x += 1.0f;
@@ -82,18 +83,24 @@ void UpdateDrawFrame(void) {
   if (IsKeyDown(KEY_S)) {
     playerMoveDir.y += 1.0f;
   }
+  playerMoveDir = Vector2Normalize(playerMoveDir);
 
   if (IsKeyDown(KEY_LEFT_SHIFT)) {
-    player.position = player.position + Vector2Normalize(playerMoveDir) *
-                                            player.sprintSpeed * GetFrameTime();
+    playerMoveDir *= player.sprintSpeed * GetFrameTime();
   } else {
-    player.position = player.position + Vector2Normalize(playerMoveDir) *
-                                            player.moveSpeed * GetFrameTime();
+    playerMoveDir *= player.moveSpeed * GetFrameTime();
   }
 
-  if (CheckCollisionRect(Rectangle{player.position.x - 4.0f,
-                                   player.position.y - 4.0f, 8.0f, 8.0f})) {
-    player.position = player.lastPosition;
+  // Apply movement vector and check collision (X and Y separately)
+  player.position.x += playerMoveDir.x;
+  if (CheckCollisionRect(Rectangle{player.position.x - 5.0f,
+                                   player.position.y - 5.0f, 10.0f, 10.0f})) {
+    player.position.x = player.lastPosition.x;
+  }
+  player.position.y += playerMoveDir.y;
+  if (CheckCollisionRect(Rectangle{player.position.x - 5.0f,
+                                   player.position.y - 5.0f, 10.0f, 10.0f})) {
+    player.position.y = player.lastPosition.y;
   }
 
   camera.target = player.position;
@@ -124,9 +131,9 @@ void UpdateDrawFrame(void) {
   BeginMode2D(camera);
   DrawChunks();
 
-  DrawCircleV(player.position, 4.0f, RED);
+  DrawCircleV(player.position, 5.0f, RED);
 
-  DrawChunkBorders(camera.target);
+  //DrawChunkBorders(camera.target); //*Debug
   EndMode2D();
 
   BetterDrawFPS((Vector2){5.0f, 5.0f});

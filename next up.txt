@@ -16,11 +16,19 @@ next up:
   [X] Fix collision. Currently rect collision detection only detects left upper corner of the rect.
   [X] Fix collision detextion fuckery when on negative chunk id
   [Skip] Fix destroy pixel fuckery when on negative chunk id (visible when mineRadius = 5)
-  [] Improve collision resolution (add an actual collisionArea return value and resolve it properly)
+  [Skip] Improve collision resolution (add an actual collisionArea return value and resolve it properly)
+  [X] Check collision after moving in X and Y axis separately (fixes sticky  walls)
+  [X] Fix a memory leak when traveling through chunks
   [] Add resources/items/garbage to mine (each chunk could have a list of or one item in it)
   [] Save unloaded chunks to a save file/folder as custom format/simple png files. (needs async)
   [] Add ambient occlusion in chunk shader (shader already set up).
-  [] Fix a memory leak when traveling through chunks
+ 
+  Art:
+    [X] player
+    [X] player walk animation
+    [X] pickaxe
+    [] diggable items
+    
 
 
 should be done (one day... not today tho):
