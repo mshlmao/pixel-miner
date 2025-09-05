@@ -10,6 +10,7 @@ void DrawChunks();
 void DrawChunkBorders(Vector2 cameraWorldPosition);  // *DEBUG
 void WorldDestroyPixelAt(Vector2 worldCoord);
 void ResetAllChunks();  // *DEBUG
+void FinalizeChunks();
 
 
 bool CheckCollisionRect(Rectangle colliderRect);

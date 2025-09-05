@@ -52,7 +52,8 @@ int main() {
 #endif
 
   // De-Initialization
-  CloseWindow();  // Close window and OpenGL context
+  FinalizeChunks();
+  CloseWindow();
 
   return 0;
 }

@@ -7,7 +7,6 @@
 
 #include "chunk.hpp"
 #include "raylib.h"
-#include "raymath.h"
 
 const unsigned char CHUNK_RENDER_DIISTANCE =
     9;  // Greater than 0, ODD (otherwise people WILL DIE)
@@ -324,6 +323,15 @@ void ResetAllChunks() {
       chunk.needsUpdate = true;
       chunk.needsSave = true;
     }
+}
+
+void FinalizeChunks(){
+  for (auto &[chunkId, chunk] : loadedChunks) {
+    chunksToUnload.push_back(chunkId);
+  }
+  for(ChunkId chunkId : chunksToUnload){
+    UnloadChunk(chunkId);
+  }
 }
 
 bool CheckCollisionRectChunk(Rectangle collider, ChunkId chunkId) {
