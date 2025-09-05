@@ -47,8 +47,11 @@ endif()
 
 # PROJECT
 
-# Copy the res folder to the build directory
+# Clean save/ and res/.
 add_custom_target(RESOURCES ALL
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/bin/save
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/bin/res
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/save
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/bin/res
 )

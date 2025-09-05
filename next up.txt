@@ -19,9 +19,13 @@ next up:
   [Skip] Improve collision resolution (add an actual collisionArea return value and resolve it properly)
   [X] Check collision after moving in X and Y axis separately (fixes sticky  walls)
   [X] Fix a memory leak when traveling through chunks
+  [X] Save chunk data to a binary file in save directory upon unloading a chunk.
+  [X] Load chunk data from a save file if available when loading a chunk into memory.
+  [] Implement bit packing of minedPixels in SerializeChunkData() function to save storage space.
+  [] Implement deserialization of bit packed minedPixels array in DeserializeChunkData()
   [] Add resources/items/garbage to mine (each chunk could have a list of or one item in it)
-  [] Save unloaded chunks to a save file/folder as custom format/simple png files. (needs async)
   [] Add ambient occlusion in chunk shader (shader already set up).
+  [] Add animation support through hardcoding frame times or preferably .json file exported from aseprite.
  
   Art:
     [X] player

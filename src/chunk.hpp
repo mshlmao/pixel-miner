@@ -26,9 +26,8 @@ struct std::hash<ChunkId> {
 struct Chunk {
   ChunkId id;
   bool isReady;
-  bool needsUpdate;  // When minedPixels change image needsan update
+  bool needsUpdate;
   bool minedPixels[CHUNK_SIZE][CHUNK_SIZE] = {false};
   Image chunkImage;
   Texture chunkTexture;
-  // 0 = not mined, 1 = mined
 };

@@ -1,6 +1,7 @@
 #include "chunkManager.hpp"
 
 #include <cmath>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -83,6 +84,43 @@ void LoadChunkTexture(ChunkId chunkId) {
   }
 }
 
+bool SerializeChunkData(Chunk &chunk) {
+  std::string fileName;
+  fileName = "save\\" + std::to_string(chunk.id.x) + "_" +
+             std::to_string(chunk.id.y) + ".chunkdata";
+  return SaveFileData(fileName.c_str(), &chunk.minedPixels,
+                      sizeof(chunk.minedPixels));
+}
+
+bool DeserializeChunkData(Chunk &chunk) {
+  std::string fileName;
+  fileName = "save\\" + std::to_string(chunk.id.x) + "_" + std::to_string(chunk.id.y) +
+             ".chunkdata";
+
+  if(!FileExists(fileName.c_str())){
+    return false;
+  }
+
+  unsigned char *fileData;
+  int dataSize;
+
+  fileData = LoadFileData(fileName.c_str(), &dataSize);
+
+  if (dataSize != sizeof(chunk.minedPixels)) {
+    TraceLog(LOG_ERROR, TextFormat("File: '%s' incorrect size for "
+                                   "deserialization (file may be corrupted).",
+                                   fileName.c_str()));
+    return false;
+  }
+
+  for(int i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i ++)
+{
+    chunk.minedPixels[i / CHUNK_SIZE][i % CHUNK_SIZE] = ((bool *)fileData)[i];
+}
+  UnloadFileData(fileData);
+  return true;
+}
+
 void LoadChunk(ChunkId chunkId) {
   if (IsChunkActive(chunkId)) {
     TraceLog(LOG_ERROR,
@@ -94,7 +132,8 @@ void LoadChunk(ChunkId chunkId) {
   loadedChunks[chunkId];
   loadedChunks[chunkId].id = chunkId;
 
-  // TODO: retrieve mined pixels from a save file i guess
+  DeserializeChunkData(GetActiveChunk(chunkId));
+
   LoadChunkImage(chunkId);
   loadedChunks[chunkId].needsUpdate = true;
   return;
@@ -102,12 +141,18 @@ void LoadChunk(ChunkId chunkId) {
 
 void UnloadChunk(ChunkId chunkId) {
   Chunk &chunkToUnload = GetActiveChunk(chunkId);
+  chunkToUnload.isReady = false;
+
+  SerializeChunkData(chunkToUnload);
+
   if (IsImageValid(chunkToUnload.chunkImage)) {
     UnloadImage(chunkToUnload.chunkImage);
   }
   if (IsTextureValid(chunkToUnload.chunkTexture)) {
     UnloadTexture(chunkToUnload.chunkTexture);
   }
+
+  // TODO: When making serialization multithreaded wait here for it to end
   loadedChunks.erase(chunkId);
 }
 
