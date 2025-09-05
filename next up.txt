@@ -21,8 +21,9 @@ next up:
   [X] Fix a memory leak when traveling through chunks
   [X] Save chunk data to a binary file in save directory upon unloading a chunk.
   [X] Load chunk data from a save file if available when loading a chunk into memory.
-  [] Implement bit packing of minedPixels in SerializeChunkData() function to save storage space.
-  [] Implement deserialization of bit packed minedPixels array in DeserializeChunkData()
+  [X] Implement bit packing of minedPixels in SerializeChunkData() function to save storage space.
+  [X] Implement hasChanged chunk flag to avoid re-saving chunks that players only travel through
+  [X] Implement deserialization of bit packed minedPixels array in DeserializeChunkData()
   [] Add resources/items/garbage to mine (each chunk could have a list of or one item in it)
   [] Add ambient occlusion in chunk shader (shader already set up).
   [] Add animation support through hardcoding frame times or preferably .json file exported from aseprite.

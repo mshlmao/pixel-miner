@@ -25,9 +25,10 @@ struct std::hash<ChunkId> {
 
 struct Chunk {
   ChunkId id;
-  bool isReady;
-  bool needsUpdate;
-  bool minedPixels[CHUNK_SIZE][CHUNK_SIZE] = {false};
+  bool isReady = false;
+  bool needsUpdate = false;
+  bool needsSave = true;
+  bool minedPixels[CHUNK_SIZE][CHUNK_SIZE] = {false}; //[X][Y]
   Image chunkImage;
   Texture chunkTexture;
 };

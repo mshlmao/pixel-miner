@@ -40,19 +40,19 @@ Image GenerateChunkImage(ChunkId chunkId) {  // *"World generation"
                           chunkId.y * CHUNK_SIZE, 48);
   Image chunkImage = GenImageColor(CHUNK_SIZE, CHUNK_SIZE, (Color){0, 0, 0, 0});
   unsigned char pixelColor = 0;
-  for (int j = 0; j < CHUNK_SIZE; j++) {
-    for (int i = 0; i < CHUNK_SIZE; i++) {
-      pixelColor = (unsigned char)(GetImageColor(noiseImage1, i, j).r * 0.8f +
-                                   GetImageColor(noiseImage2, i, j).r * 0.2f);
+  for (int x = 0; x < CHUNK_SIZE; x++) {
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+      pixelColor = (unsigned char)(GetImageColor(noiseImage1, x, y).r * 0.8f +
+                                   GetImageColor(noiseImage2, x, y).r * 0.2f);
 
       if (pixelColor > 128) {
-        ImageDrawPixel(&chunkImage, i, j, (Color){34, 28, 26, 255});
+        ImageDrawPixel(&chunkImage, x, y, (Color){34, 28, 26, 255});
       } else if (pixelColor > 48) {
-        ImageDrawPixel(&chunkImage, i, j, (Color){50, 43, 40, 255});
+        ImageDrawPixel(&chunkImage, x, y, (Color){50, 43, 40, 255});
       } else if (pixelColor > 32) {
-        ImageDrawPixel(&chunkImage, i, j, (Color){51, 57, 65, 255});
+        ImageDrawPixel(&chunkImage, x, y, (Color){51, 57, 65, 255});
       } else {
-        ImageDrawPixel(&chunkImage, i, j, (Color){74, 84, 98, 255});
+        ImageDrawPixel(&chunkImage, x, y, (Color){74, 84, 98, 255});
       }
     }
   }
@@ -86,18 +86,24 @@ void LoadChunkTexture(ChunkId chunkId) {
 
 bool SerializeChunkData(Chunk &chunk) {
   std::string fileName;
-  fileName = "save\\" + std::to_string(chunk.id.x) + "_" +
+  unsigned char minedPixelsPacked[CHUNK_SIZE * CHUNK_SIZE / 8] = {0};
+  for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i++) {
+    minedPixelsPacked[i / 8] |=
+        chunk.minedPixels[i / CHUNK_SIZE][i % CHUNK_SIZE] << (i % 8);
+  }
+
+  fileName = "save/" + std::to_string(chunk.id.x) + "_" +
              std::to_string(chunk.id.y) + ".chunkdata";
-  return SaveFileData(fileName.c_str(), &chunk.minedPixels,
-                      sizeof(chunk.minedPixels));
+  return SaveFileData(fileName.c_str(), &minedPixelsPacked,
+                      sizeof(minedPixelsPacked));
 }
 
 bool DeserializeChunkData(Chunk &chunk) {
   std::string fileName;
-  fileName = "save\\" + std::to_string(chunk.id.x) + "_" + std::to_string(chunk.id.y) +
-             ".chunkdata";
+  fileName = "save/" + std::to_string(chunk.id.x) + "_" +
+             std::to_string(chunk.id.y) + ".chunkdata";
 
-  if(!FileExists(fileName.c_str())){
+  if (!FileExists(fileName.c_str())) {
     return false;
   }
 
@@ -106,17 +112,18 @@ bool DeserializeChunkData(Chunk &chunk) {
 
   fileData = LoadFileData(fileName.c_str(), &dataSize);
 
-  if (dataSize != sizeof(chunk.minedPixels)) {
+  if (dataSize != sizeof(unsigned char[CHUNK_SIZE * CHUNK_SIZE / 8])) {
     TraceLog(LOG_ERROR, TextFormat("File: '%s' incorrect size for "
                                    "deserialization (file may be corrupted).",
                                    fileName.c_str()));
     return false;
   }
 
-  for(int i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i ++)
-{
-    chunk.minedPixels[i / CHUNK_SIZE][i % CHUNK_SIZE] = ((bool *)fileData)[i];
-}
+  for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i++) {
+    chunk.minedPixels[i / CHUNK_SIZE][i % CHUNK_SIZE] =
+        (fileData[i / 8] & (1 << (i % 8))) != 0;
+  }
+
   UnloadFileData(fileData);
   return true;
 }
@@ -129,13 +136,16 @@ void LoadChunk(ChunkId chunkId) {
     return;
   }
 
-  loadedChunks[chunkId];
-  loadedChunks[chunkId].id = chunkId;
+  Chunk &chunkToLoad = loadedChunks[chunkId];
+  chunkToLoad.id = chunkId;
 
-  DeserializeChunkData(GetActiveChunk(chunkId));
+  if (DeserializeChunkData(GetActiveChunk(chunkId))) {
+    chunkToLoad.needsSave = false;
+  }
 
   LoadChunkImage(chunkId);
-  loadedChunks[chunkId].needsUpdate = true;
+  chunkToLoad.needsUpdate = true;
+  chunkToLoad.isReady = true;
   return;
 }
 
@@ -143,7 +153,9 @@ void UnloadChunk(ChunkId chunkId) {
   Chunk &chunkToUnload = GetActiveChunk(chunkId);
   chunkToUnload.isReady = false;
 
-  SerializeChunkData(chunkToUnload);
+  if (chunkToUnload.needsSave) {
+    SerializeChunkData(chunkToUnload);
+  }
 
   if (IsImageValid(chunkToUnload.chunkImage)) {
     UnloadImage(chunkToUnload.chunkImage);
@@ -157,21 +169,21 @@ void UnloadChunk(ChunkId chunkId) {
 }
 
 void InitializeChunks() {
-  chunkShader = LoadShader(0, "res\\shaders\\chunkShader.fs");
+  chunkShader = LoadShader(0, "res/shaders/chunkShader.fs");
 }
 
 void UpdateChunkImage(ChunkId chunkId) {  // Doesnt generate an image
   Chunk &chunkToUpdateImage = GetActiveChunk(chunkId);
 
-  for (int j = 0; j < CHUNK_SIZE; j++) {
-    for (int i = 0; i < CHUNK_SIZE; i++) {
-      Color pixelColor = GetImageColor(chunkToUpdateImage.chunkImage, i, j);
-      if (chunkToUpdateImage.minedPixels[i][j] == true) {
+  for (int x = 0; x < CHUNK_SIZE; x++) {
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+      Color pixelColor = GetImageColor(chunkToUpdateImage.chunkImage, x, y);
+      if (chunkToUpdateImage.minedPixels[x][y] == true) {
         pixelColor.a = 0;
-        ImageDrawPixel(&chunkToUpdateImage.chunkImage, i, j, pixelColor);
+        ImageDrawPixel(&chunkToUpdateImage.chunkImage, x, y, pixelColor);
       } else {
         pixelColor.a = 255;
-        ImageDrawPixel(&chunkToUpdateImage.chunkImage, i, j, pixelColor);
+        ImageDrawPixel(&chunkToUpdateImage.chunkImage, x, y, pixelColor);
       }
     }
   }
@@ -279,14 +291,14 @@ void DrawChunkBorders(Vector2 camPos) {
 
 void DestroyPixel(ChunkId chunkId, unsigned char pixelCoordX,
                   unsigned char pixelCoordY) {
-  // TODO: make it not crash when trying to acces a chunk/pixel that doesnt
-  // TODO: exist
+  Chunk &chunk = GetActiveChunk(chunkId);
   if (!IsChunkActive(chunkId)) {
     return;
   }
 
-  GetActiveChunk(chunkId).minedPixels[pixelCoordX][pixelCoordY] = true;
-  GetActiveChunk(chunkId).needsUpdate = true;
+  chunk.minedPixels[pixelCoordX][pixelCoordY] = true;
+  chunk.needsUpdate = true;
+  chunk.needsSave = true;
 }
 
 void WorldDestroyPixelAt(Vector2 worldCoord) {
@@ -310,6 +322,7 @@ void ResetAllChunks() {
         chunk.minedPixels[x][y] = false;
       }
       chunk.needsUpdate = true;
+      chunk.needsSave = true;
     }
 }
 
@@ -334,8 +347,8 @@ bool CheckCollisionRectChunk(Rectangle collider, ChunkId chunkId) {
   if (endX > CHUNK_SIZE) endX = CHUNK_SIZE;
   if (endY > CHUNK_SIZE) endY = CHUNK_SIZE;
 
-  for (int y = startY; y < endY; y++) {
-    for (int x = startX; x < endX; x++) {
+  for (int x = startX; x < endX; x++) {
+    for (int y = startY; y < endY; y++) {
       if (GetActiveChunk(chunkId).minedPixels[x][y] == false) {
         return true;
       }
@@ -348,8 +361,8 @@ bool CheckCollisionRect(Rectangle collider) {
   ChunkId startChunkId = WorldCoordToChunkId(Vector2{collider.x, collider.y});
   ChunkId endChunkId = WorldCoordToChunkId(
       Vector2{collider.x + collider.width, collider.y + collider.height});
-  for (int y = startChunkId.y; y <= endChunkId.y; y++) {
-    for (int x = startChunkId.x; x <= endChunkId.x; x++) {
+  for (int x = startChunkId.x; x <= endChunkId.x; x++) {
+    for (int y = startChunkId.y; y <= endChunkId.y; y++) {
       if (CheckCollisionRectChunk(collider, ChunkId{x, y})) {
         return true;
       }
